@@ -5,35 +5,22 @@
 
 using namespace Rcpp;
 
-// cdrDist
-int cdrDist(std::string cdrx, std::string cdry, int cdr);
-RcppExport SEXP _TCRdist_cdrDist(SEXP cdrxSEXP, SEXP cdrySEXP, SEXP cdrSEXP) {
+// CDRdistmat
+IntegerMatrix CDRdistmat(std::vector<std::string> cdrx, std::vector<std::string> cdry, int cdr);
+RcppExport SEXP _TCRdist_CDRdistmat(SEXP cdrxSEXP, SEXP cdrySEXP, SEXP cdrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::string >::type cdrx(cdrxSEXP);
-    Rcpp::traits::input_parameter< std::string >::type cdry(cdrySEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type cdrx(cdrxSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type cdry(cdrySEXP);
     Rcpp::traits::input_parameter< int >::type cdr(cdrSEXP);
-    rcpp_result_gen = Rcpp::wrap(cdrDist(cdrx, cdry, cdr));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test
-int test(std::string cdrx, std::string cdry);
-RcppExport SEXP _TCRdist_test(SEXP cdrxSEXP, SEXP cdrySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::string >::type cdrx(cdrxSEXP);
-    Rcpp::traits::input_parameter< std::string >::type cdry(cdrySEXP);
-    rcpp_result_gen = Rcpp::wrap(test(cdrx, cdry));
+    rcpp_result_gen = Rcpp::wrap(CDRdistmat(cdrx, cdry, cdr));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_TCRdist_cdrDist", (DL_FUNC) &_TCRdist_cdrDist, 3},
-    {"_TCRdist_test", (DL_FUNC) &_TCRdist_test, 2},
+    {"_TCRdist_CDRdistmat", (DL_FUNC) &_TCRdist_CDRdistmat, 3},
     {NULL, NULL, 0}
 };
 

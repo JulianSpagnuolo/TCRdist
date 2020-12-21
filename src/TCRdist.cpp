@@ -22,39 +22,30 @@ using namespace Rcpp;
 //' @param 
 //' @export
 // [[Rcpp::export]]
-int cdrDist(std::string cdrx, std::string cdry, int cdr)
+int TCRdist(Matrix TCRseq, bool CDR3)
 {
-  
-  int dist;
-  int distW;
-  
-  switch(cdr) // add switch statement to add weight to distance calculations
+  // if alpha/beta matrix, ncol is even
+  if(TCRseq.ncol() % 2 == 0 & CDR3 == 1)
   {
-  case 1: distW = 1;
-  case 2: distW = 1;
-  case 3: distW = 3;
-    break;
-  } 
-  
-  if(cdrx.compare(cdry) == 0) // check if sequence is identical
+    std::cout << "Running alpha/beta" << std::endl;
+  }else if(TCRseq.ncol() % 2 != 0)
   {
-    dist = 0;
-  }
-  else // compare lengths
+    std::cout << "Running single chain" << std::endl;
+  }else if(CDR3 == 0)
   {
-    std::vector<std::string> gapped;
-    gapped = align(cdrx, cdry);
-    
-    //std::cout << gapped << std::endl;
-    // compare characters in aligned sequences.
-    
+    std::cout << "Running CDR1 & CDR2 only" << std::endl;
+    if(TCRseq.ncol() == 2)
+    {
+      std::cout << "Running single chain CDR1 & CDR2" << std::endl;
+    }else if(TCRseq.ncol() == 4)
+    {
+      std::cout << "Running alpha/beta CDR1 & CDR2" << std::endl;
+    }
     
   }
   
-  dist = 0;
   
   
-  return dist;
+  return 0;
 }
-
 
