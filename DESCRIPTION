@@ -1,0 +1,13 @@
+Package: TCRdist
+Type: Package
+Title: T-cell Receptor Distance and Similarity Analysis
+Version: 0.0.1
+Date: 2020-12-14
+Author: Julian Spagnuolo
+Maintainer: Julian Spagnuolo <julianspagnuolo@gmail.com>
+Description: TEMP
+License: BSD_3_clause + file LICENSE
+Imports: Rcpp (>= 1.0.0), BH, RSeqAn, Biostrings
+LinkingTo: Rcpp, BH, RSeqAn
+RoxygenNote: 7.1.1
+Encoding: UTF-8
