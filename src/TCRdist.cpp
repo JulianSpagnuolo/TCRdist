@@ -28,18 +28,36 @@ int TCRdist(Matrix TCRseq, bool CDR3)
   if(TCRseq.ncol() % 2 == 0 & CDR3 == 1)
   {
     std::cout << "Running alpha/beta" << std::endl;
+    
+    IntegerMatrix cdr1(TCRseq.nrow(), TCRseq.nrow());
+    IntegerMatrix cdr2(TCRseq.nrow(), TCRseq.nrow());
+    IntegerMatrix cdr3(TCRseq.nrow(), TCRseq.nrow());
+    
   }else if(TCRseq.ncol() % 2 != 0)
   {
     std::cout << "Running single chain" << std::endl;
+    
+    IntegerMatrix cdr1(TCRseq.nrow(), TCRseq.nrow());
+    IntegerMatrix cdr2(TCRseq.nrow(), TCRseq.nrow());
+    IntegerMatrix cdr3(TCRseq.nrow(), TCRseq.nrow());
+    
   }else if(CDR3 == 0)
   {
     std::cout << "Running CDR1 & CDR2 only" << std::endl;
+    
+    IntegerMatrix cdr1(TCRseq.nrow(), TCRseq.nrow());
+    IntegerMatrix cdr2(TCRseq.nrow(), TCRseq.nrow());
+    
     if(TCRseq.ncol() == 2)
     {
       std::cout << "Running single chain CDR1 & CDR2" << std::endl;
+      
+      
     }else if(TCRseq.ncol() == 4)
     {
       std::cout << "Running alpha/beta CDR1 & CDR2" << std::endl;
+      
+      
     }
     
   }
