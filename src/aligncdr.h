@@ -121,11 +121,12 @@ int CDRdist(std::string cdrx, std::string cdry, int cdr) {
 
 IntegerMatrix CDRdistmat(std::vector<std::string> cdrx, std::vector<std::string> cdry, int cdr)
 {
+  
   IntegerMatrix distmat(cdrx.size(), cdry.size());
   
   for(int x = 0; x < cdrx.size(); x++)
   {
-    for(int y = 0; y < cdry.size(); y++)
+    for(int y = x; y < cdry.size(); y++)
     {
       distmat(x,y) = CDRdist(cdrx[x], cdry[y], cdr);
     }
