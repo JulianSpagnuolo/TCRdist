@@ -22,7 +22,7 @@ install_github("JulianSpagnuolo/TCRdist")
 
 ## Citation
 
-It is requested that any published or presented work that utlised this
+It is requested that any published or presented work that utilised this
 package and scripts contained within cite TCRdist.
 
     #> 
@@ -43,6 +43,19 @@ package and scripts contained within cite TCRdist.
     #> ATTENTION: This citation information has been auto-generated from the
     #> package DESCRIPTION file and may need manual editing, see
     #> 'help("citation")'.
+
+The original paper from which TCRdist was ported to R should also be
+cited:
+
+Quantifiable predictive features define epitope-specific T cell receptor
+repertoires
+
+Pradyot Dash, Andrew J. Fiore-Gartland, Tomer Hertz, George C. Wang,
+Shalini Sharma, Aisha Souquette, Jeremy Chase Crawford, E. Bridie
+Clemens, Thi H. O. Nguyen, Katherine Kedzierska, Nicole L. La Gruta,
+Philip Bradley & Paul G. Thomas
+
+Nature (2017) <doi:10.1038/nature22383>
 
 ## Example
 
