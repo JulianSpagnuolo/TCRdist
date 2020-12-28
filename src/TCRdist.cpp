@@ -22,8 +22,10 @@ using namespace Rcpp;
 //' @param 
 //' @export
 // [[Rcpp::export]]
-int TCRdist(Matrix TCRseq, bool CDR3)
+int TCRdist(Rcpp::IntegerMatrix TCRseq, bool CDR3)
 {
+  
+  /*
   // if alpha/beta matrix, ncol is even
   if(TCRseq.ncol() % 2 == 0 & CDR3 == 1)
   {
@@ -62,7 +64,7 @@ int TCRdist(Matrix TCRseq, bool CDR3)
     
   }
   
-  
+  */
   
   return 0;
 }

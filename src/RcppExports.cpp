@@ -5,22 +5,36 @@
 
 using namespace Rcpp;
 
-// CDRdistmat
-IntegerMatrix CDRdistmat(std::vector<std::string> cdrx, std::vector<std::string> cdry, int cdr);
-RcppExport SEXP _TCRdist_CDRdistmat(SEXP cdrxSEXP, SEXP cdrySEXP, SEXP cdrSEXP) {
+// TCRdist
+int TCRdist(Rcpp::IntegerMatrix TCRseq, bool CDR3);
+RcppExport SEXP _TCRdist_TCRdist(SEXP TCRseqSEXP, SEXP CDR3SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<std::string> >::type cdrx(cdrxSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::string> >::type cdry(cdrySEXP);
-    Rcpp::traits::input_parameter< int >::type cdr(cdrSEXP);
-    rcpp_result_gen = Rcpp::wrap(CDRdistmat(cdrx, cdry, cdr));
+    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type TCRseq(TCRseqSEXP);
+    Rcpp::traits::input_parameter< bool >::type CDR3(CDR3SEXP);
+    rcpp_result_gen = Rcpp::wrap(TCRdist(TCRseq, CDR3));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Vdist
+Rcpp::IntegerMatrix Vdist(std::vector<std::string> cdrs, Rcpp::StringVector Vgene, int gap_penalty, int weight);
+RcppExport SEXP _TCRdist_Vdist(SEXP cdrsSEXP, SEXP VgeneSEXP, SEXP gap_penaltySEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type cdrs(cdrsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type Vgene(VgeneSEXP);
+    Rcpp::traits::input_parameter< int >::type gap_penalty(gap_penaltySEXP);
+    Rcpp::traits::input_parameter< int >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(Vdist(cdrs, Vgene, gap_penalty, weight));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_TCRdist_CDRdistmat", (DL_FUNC) &_TCRdist_CDRdistmat, 3},
+    {"_TCRdist_TCRdist", (DL_FUNC) &_TCRdist_TCRdist, 2},
+    {"_TCRdist_Vdist", (DL_FUNC) &_TCRdist_Vdist, 4},
     {NULL, NULL, 0}
 };
 
