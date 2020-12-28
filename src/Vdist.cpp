@@ -28,7 +28,7 @@ Rcpp::IntegerMatrix Vdist(std::vector<std::string> cdrs, Rcpp::StringVector Vgen
   
   for(int y = 0; y < cdrs.size(); y++)
   {
-    for(int x = y; x < cdrs.size(); x++)
+    for(int x = 0; x < cdrs.size(); x++)
     {
       distmat(x,y) = Vscore(cdrs[x], cdrs[y], gap_penalty, weight);
     }
