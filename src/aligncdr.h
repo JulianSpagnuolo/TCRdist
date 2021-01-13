@@ -106,9 +106,16 @@ int CDRdist(std::string cdrx, std::string cdry, int cdr) {
   
   if(alignobj[0].length() == alignobj[1].length())
   {
-    for(int i = 0; i < alignobj[0].length(); i++)
+    if(alignobj[0].compare(alignobj[1]) == 0)
     {
-      score += AAdist(alignobj[0][i], alignobj[1][i]) * distW;
+      return score;
+    }
+    else
+    {
+      for(int i = 0; i < alignobj[0].length(); i++)
+      {
+        score += AAdist(alignobj[0][i], alignobj[1][i]) * distW;
+      }
     }
   }else
   {

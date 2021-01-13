@@ -50,7 +50,7 @@ int blosum_aa_distance(char aax, char aay, int gap_penalty){
 int Vscore(std::string cdrx, std::string cdry, int gap_penalty, int weight){
   
   int dist = 0;
-  if(cdrx.compare(cdry) == 1)
+  if(cdrx.compare(cdry) == 0)
   {
     return dist;
   }

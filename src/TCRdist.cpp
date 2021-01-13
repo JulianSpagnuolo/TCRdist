@@ -32,7 +32,7 @@ IntegerMatrix CDRdistmat(std::vector<std::string> cdrs, Rcpp::StringVector clone
   /// put time saving method of calculating only half of the matrix back in!!!! and figure out how to return a dist class object!
   for(int y = 0; y < cdrs.size(); y++)
   {
-    for(int x = y; x < cdrs.size(); x++)
+    for(int x = 0; x < cdrs.size(); x++)
     {
       distmat(x,y) = CDRdist(cdrs[x], cdrs[y], cdr);
     }
