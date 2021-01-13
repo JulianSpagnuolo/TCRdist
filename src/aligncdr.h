@@ -119,21 +119,7 @@ int CDRdist(std::string cdrx, std::string cdry, int cdr) {
   return score;
 }
 
-IntegerMatrix CDRdistmat(std::vector<std::string> cdrx, std::vector<std::string> cdry, int cdr)
-{
-  
-  IntegerMatrix distmat(cdrx.size(), cdry.size());
-  
-  for(int y = 0; y < cdry.size(); y++)
-  {
-    for(int x = y; x < cdrx.size(); x++)
-    {
-      distmat(x,y) = CDRdist(cdrx[x], cdry[y], cdr);
-    }
-  }
-  
-  return distmat;
-}
+
 
 
 

@@ -8,8 +8,8 @@
 #'
 #' @param 
 #' @export
-TCRdist <- function(TCRseq, CDR3) {
-    .Call(`_TCRdist_TCRdist`, TCRseq, CDR3)
+CDRdistmat <- function(cdrs, clones, cdr) {
+    .Call(`_TCRdist_CDRdistmat`, cdrs, clones, cdr)
 }
 
 #' @title Vdist

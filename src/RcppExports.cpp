@@ -5,15 +5,16 @@
 
 using namespace Rcpp;
 
-// TCRdist
-int TCRdist(Rcpp::IntegerMatrix TCRseq, bool CDR3);
-RcppExport SEXP _TCRdist_TCRdist(SEXP TCRseqSEXP, SEXP CDR3SEXP) {
+// CDRdistmat
+IntegerMatrix CDRdistmat(std::vector<std::string> cdrs, Rcpp::StringVector clones, int cdr);
+RcppExport SEXP _TCRdist_CDRdistmat(SEXP cdrsSEXP, SEXP clonesSEXP, SEXP cdrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type TCRseq(TCRseqSEXP);
-    Rcpp::traits::input_parameter< bool >::type CDR3(CDR3SEXP);
-    rcpp_result_gen = Rcpp::wrap(TCRdist(TCRseq, CDR3));
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type cdrs(cdrsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type clones(clonesSEXP);
+    Rcpp::traits::input_parameter< int >::type cdr(cdrSEXP);
+    rcpp_result_gen = Rcpp::wrap(CDRdistmat(cdrs, clones, cdr));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -33,7 +34,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_TCRdist_TCRdist", (DL_FUNC) &_TCRdist_TCRdist, 2},
+    {"_TCRdist_CDRdistmat", (DL_FUNC) &_TCRdist_CDRdistmat, 3},
     {"_TCRdist_Vdist", (DL_FUNC) &_TCRdist_Vdist, 4},
     {NULL, NULL, 0}
 };

@@ -26,6 +26,7 @@ Rcpp::IntegerMatrix Vdist(std::vector<std::string> cdrs, Rcpp::StringVector Vgen
   rownames(distmat) = Vgene;
   colnames(distmat) = Vgene;
   
+  /// put time saving method of calculating only half of the matrix back in!!!! and figure out how to return a dist class object!
   for(int y = 0; y < cdrs.size(); y++)
   {
     for(int x = 0; x < cdrs.size(); x++)

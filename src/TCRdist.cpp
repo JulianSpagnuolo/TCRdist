@@ -22,50 +22,22 @@ using namespace Rcpp;
 //' @param 
 //' @export
 // [[Rcpp::export]]
-int TCRdist(Rcpp::IntegerMatrix TCRseq, bool CDR3)
+IntegerMatrix CDRdistmat(std::vector<std::string> cdrs, Rcpp::StringVector clones, int cdr)
 {
   
-  /*
-  // if alpha/beta matrix, ncol is even
-  if(TCRseq.ncol() % 2 == 0 & CDR3 == 1)
+  IntegerMatrix distmat(cdrs.size(), cdrs.size());
+  rownames(distmat) = clones;
+  colnames(distmat) = clones;
+  
+  /// put time saving method of calculating only half of the matrix back in!!!! and figure out how to return a dist class object!
+  for(int y = 0; y < cdrs.size(); y++)
   {
-    std::cout << "Running alpha/beta" << std::endl;
-    
-    IntegerMatrix cdr1(TCRseq.nrow(), TCRseq.nrow());
-    IntegerMatrix cdr2(TCRseq.nrow(), TCRseq.nrow());
-    IntegerMatrix cdr3(TCRseq.nrow(), TCRseq.nrow());
-    
-  }else if(TCRseq.ncol() % 2 != 0)
-  {
-    std::cout << "Running single chain" << std::endl;
-    
-    IntegerMatrix cdr1(TCRseq.nrow(), TCRseq.nrow());
-    IntegerMatrix cdr2(TCRseq.nrow(), TCRseq.nrow());
-    IntegerMatrix cdr3(TCRseq.nrow(), TCRseq.nrow());
-    
-  }else if(CDR3 == 0)
-  {
-    std::cout << "Running CDR1 & CDR2 only" << std::endl;
-    
-    IntegerMatrix cdr1(TCRseq.nrow(), TCRseq.nrow());
-    IntegerMatrix cdr2(TCRseq.nrow(), TCRseq.nrow());
-    
-    if(TCRseq.ncol() == 2)
+    for(int x = y; x < cdrs.size(); x++)
     {
-      std::cout << "Running single chain CDR1 & CDR2" << std::endl;
-      
-      
-    }else if(TCRseq.ncol() == 4)
-    {
-      std::cout << "Running alpha/beta CDR1 & CDR2" << std::endl;
-      
-      
+      distmat(x,y) = CDRdist(cdrs[x], cdrs[y], cdr);
     }
-    
   }
   
-  */
-  
-  return 0;
+  return distmat;
 }
 

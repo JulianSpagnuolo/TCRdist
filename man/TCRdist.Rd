@@ -2,9 +2,10 @@
 % Please edit documentation in R/RcppExports.R
 \name{TCRdist}
 \alias{TCRdist}
+\alias{CDRdistmat}
 \title{TCRdist}
 \usage{
-TCRdist(TCRseq, CDR3)
+CDRdistmat(cdrs, clones, cdr)
 }
 \description{
 
