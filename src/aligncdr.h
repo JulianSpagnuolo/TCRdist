@@ -69,16 +69,24 @@ std::vector<std::string> align(std::string cdrx, std::string cdry)
   return output;
 }
 
-int AAdist(char AAx, char AAy)
+int AAdist(char AAx, char AAy, int gap_penalty)
 {
   int dist;
-  if(AAx == AAy)
+  if(AAx == '-' & AAy == '-')
   {
     dist = 0;
   }
+  else if(aax == '-' | aay == '-')
+  {
+    dist = gap_penalty;
+  }
   else
   {
-    if(score(seqan::Blosum62(), AAx, AAy) < 0)
+    if(AAx == AAy)
+    {
+      dist = 0;
+    }
+    else if(score(seqan::Blosum62(), AAx, AAy) < 0)
     {
       dist = 4;
     }
@@ -87,6 +95,7 @@ int AAdist(char AAx, char AAy)
       dist = 4 - score(seqan::Blosum62(), AAx, AAy);
     }
   }
+  
   return dist;
 }
 
@@ -114,7 +123,7 @@ int CDRdist(std::string cdrx, std::string cdry, int cdr) {
     {
       for(int i = 0; i < alignobj[0].length(); i++)
       {
-        score += AAdist(alignobj[0][i], alignobj[1][i]) * distW;
+        score += AAdist(alignobj[0][i], alignobj[1][i], 4) * distW;
       }
     }
   }else
