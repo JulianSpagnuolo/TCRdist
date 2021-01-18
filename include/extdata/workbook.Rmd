@@ -1,0 +1,539 @@
+
+```{r, setup}
+library(stringr)
+library(amap)
+library(TCRdist)
+
+```
+
+# Annotation and MR1T TCR data input
+
+```{r}
+mait <- c("TRAV1-2*01 / TRBV6-1*01", "TRAV1-2*01 / TRBV6-4*01", "TRAV1-2*01 / TRBV20-1*05", "TRAV1-2*01 / TRBV28*01", "TRAV1-2*01 / TRBV6-2*01",
+          "TRAV1-2*01 / TRBV4-2*01", "TRAV1-2*01 / TRBV4-3*01", "TRAV1-2*01 / TRBV5-4*01", "TRAV1-2*01 / TRBV5-4*02", "TRAV1-2*01 / TRBV5-4*03",
+          "TRAV1-2*01 / TRBV5-5*01", "TRAV1-2*01 / TRBV5-5*02","TRAV1-2*01 / TRBV5-6*01", "TRAV1-2*01 / TRBV5-7*01", "TRAV1-2*01 / TRBV5-8*01",
+          "TRAV1-2*01 / TRBV5-8*02")
+
+mr1t <- c("TRAV8-2*01 / TRBV5-6*01",
+          "TRAV19*01 / TRBV12-4*01",
+          "TRAV14/DV4*02 / TRBV6-5*01",
+          "TRAV29/DV5*01 / TRBV28*01",
+          "TRAV24*01 / TRBV5-5*01", ## should be TRBV5-5*02 but this is identical in the CDR1/2/2.5 sequences (but not CDR3 leader)
+          "TRAV19*01 / TRBV28*01",
+          "TRAV25*01 / TRBV29-1*01",
+          "TRAV1-2*01 / TRBV6-1*01",
+          "TRAV29/DV5*01 / TRBV12-4*01",
+          "TRAV5*01 / TRBV28*01", 
+          "TRAV9-2*01 / TRBV15*01", ## LM list annotates as TRBV15*02 but sequence is CATSR, so likely to be TRBV*01
+          "TRAV27*01 / TRBV25-1*01", 
+          "TRAV12-3*01 / TRBV6-5*01",
+          "TRAV3*01 / TRBV24-1*01", ## LM list annotates as TRBV24-1*02 but this could be duplicate sequences (with minor diff in FR regions) both identical in CDRs
+          "TRAV10*01 / TRBV4-3*01", 
+          "TRAV29/DV5*01 / TRBV28*01",
+          "TRAV12-1*01 / TRBV24-1*01",
+          "TRAV35*01 / TRBV9*01", ## LM annotates as TRAV35*02 but CDR3 sequence is CAGQ, thus likely could be TRAV35*01 based on this.
+          "TRAV9-2*01 / TRBV6-5*01",
+          "TRAV25*01 / TRBV20-1*01",
+          "TRAV27*01 / TRBV29-1*01",
+          "TRAV13-1*01 / TRBV25-1*01",
+          "TRAV12-1*01 / TRBV29-1*01",
+          "TRAV38-2/DV8*01 / TRBV25-1*01")
+names(mr1t) <- c("AC1A4",
+                 "AVA34",
+                 "AVA46",
+                 "AC1B76",
+                 "CH9A3",
+                 "CHO9A4",
+                 "DGA28",
+                 "DGA4-39",
+                 "DGB129",
+                 "DGB70",
+                 "JM64-8",
+                 "JMA",
+                 "LMB1F3",
+                 "LMC1D1",
+                 "MCA2B1",
+                 "MCA2E7",
+                 "MCA3C3",
+                 "MCA3D9",
+                 "QY1A16",
+                 "QY1B42",
+                 "QY1C3",
+                 "TC5A87",
+                 "TRA44",
+                 "MC.7.G5")
+
+mr1t.cdrs <- data.frame(clone = names(mr1t), tcr.genes=mr1t,
+                        cdr3a = c("SDDPLSGNEKLTF","WNQGAQKLVF","REALGFVF","SYYNQGGKLIF","SGDSGYALNF","EPSNTGKLIF","AAGGTSYGKLTF","MDSSYKLIF",
+                                  "SLYNQGGKLIF","TWTDRGSTLGRLYF","TIWDYGGSQGNLIF","ENSGYALNF","SLSGGSYIPTF","SDADRGSTLGRLYF","GQAGTALIF","QIYNQGGKLIF",
+                                  "TGNQFYF","QLGGAGGTSYGKLTF","NLFITWGGSNYKLTF","TNDYKLSF","HDSLSNSGYALNF","NWSPQGNEKLTF","NRFTRDGNKLVF","AVNARLMF"),
+                        cdr3b=c("SFSGGISSSYNEQFF","SLMSVGGSAGELFF","SPLEGSYNEQFF","SPGYQETQYF","SFDVGLPPLHF","SRLLAGGQNEQFF","GAGQGPYTDTQYF",
+                                "SEVTGGYNEQFF","SYRGTEAFF","SLGATGANEKLFF","SREWETQYF","SQLYRDTSNTGELFF","GISGTASSYNSPLHF","SDRGNEQFF","SQDRNDRGYVNYGYTF",
+                                "SFSSGKYQF","SDVGTGDTGELFF","SVGGGLADTQYF","CADLATVGETQYF","RGDRGLAGIYNEQFF","SLGLLAGEGAFYEQYF","SEYIQYSGNTIYF",
+                                "EGRGYEQYF","ARGLAEFTDT"))
+
+
+mr1t.cdrs$source <- "EXPI"
+mr1t.cdrs[which(mr1t.cdrs$clone == "MC.7.G5"),"source"] <- "Sewell.NI.2020"
+mr1t.cdrs$reactivity <- NA
+
+extra <- data.frame(clone = c("D462-E4", "MAV3", "MAV12", "MAV21", "MAV8", "MAV14", "MAV19.1","MAV19.2","MAV36",
+                              paste("Koay",1:23, sep="."), "SMC3"),
+                    tcr.genes = c("TRAV12-2*01 / TRBV29-1*01", ## should be TRAV12-2*02 / TRBV29-1*02 but had to change due to the deduplication of the va.perm obj
+                                  "TRAV3*01 / TRBV7-9*01", ## should be TRBV7-9*04 based on cdr3 leader sequence
+                                  "TRAV12-2*01 / TRBV28*01", ## should be TRAV12-2*02 based on cdr3 leader sequence
+                                  "TRAV21*01 / TRBV5-6*01", ## TRAV21*02
+                                  "TRAV8-2*01 / TRBV11-3*01",
+                                  "TRAV14/DV4*01 / TRBV29-1*01","TRAV19*01 / TRBV5-6*01","TRAV19*01 / TRBV19*01",
+                                  "TRAV36/DV7*01 / TRBV28*01", # TRAV36/DV7*04
+                                  "TRAV5*01 / TRBV19*01", # TRBV19*03
+                                  "TRAV8-6*01 / TRBV19*01", # TRBV19*03
+                                  "TRAV9-2*01 / TRBV24-1*01",
+                                  "TRAV12-2*01 / TRBV4-1*01", ## difference between *01,*02 & *03
+                                  "TRAV13-2*01 / TRBV12-4*01", #should be TRAV13-2*02 based on the cdr3 leader 
+                                  "TRAV27*01 / TRBV6-6*01", # TRAV27*02 / TRBV6-6*03
+                                  "TRAV36/DV7*01 / TRBV28*01",#
+                                  "TRAV36/DV7*02 / TRBV28*01",
+                                  "TRAV36/DV7*01 / TRBV28*01", #should be TRAV36/DV7*03 based on the cdr3 leader
+                                  "TRAV36/DV7*01 / TRBV28*01", #should be TRAV36/DV7*03 based on the cdr3 leader
+                                  "TRAV36/DV7*01 / TRBV28*01", #should be TRAV36/DV7*03 based on the cdr3 leader
+                                  "TRAV36/DV7*01 / TRBV25-1*01",
+                                  "TRAV36/DV7*01 / TRBV28*01", #should be TRAV36/DV7*03 based on the cdr3 leader
+                                  "TRAV36/DV7*01 / TRBV28*01", #should be TRAV36/DV7*03 based on the cdr3 leader
+                                  "TRAV4*01 / TRBV24-1*01",
+                                  "TRAV9-2*01 / TRBV20-1*01",
+                                  "TRAV12-3*01 / TRBV11-3*01",
+                                  "TRAV13-2*01 / TRBV24-1*01", # TRAV13-2*02
+                                  "TRAV14/DV4*01 / TRBV28*01",
+                                  "TRAV19*01 / TRBV4-1*01",
+                                  "TRAV19*01 / TRBV4-1*01",
+                                  "TRAV20*01 / TRBV3-1*01", ### ambiguous
+                                  "TRAV36/DV7*01 / TRBV29-1*01", # TRAV36/DV7*03
+                                  "TRAV1-2*01 / TRBV20-1*01"  ## AUTO-REACTIVE MAIT EXPI), 
+                    cdr3a = c("RDAGNMLTF", "AGSQGNLIF", "RGWGKLQF","PLTHSGNQFYF","PFNQFYF","FPFNKFYF","AEDYKLSF","LYSGAGSYQLTF","AYNSDKLIF",
+                              "SRGSSNTGKLIF","DRGGSNYKLTF","DHEAAGNKLTF","FASGYSSASKIIF","KLGGGGNKLTF","VSNAGKSTF","YNTDKLIF","YNTDKLIF","AYNTDKLIF","TYNTDKLIF",
+                              "VPYNTDKLIF","YNTDKLIF","PYNTGKLIF","GYNTGKLIF","GGLTSNYQLIW","RVNNAGNMLTF","VEDYKLSF","GASGYSTLTF","YSGYALNF","EVSAGGTSYGKLTF",
+                              "RVKVGGSYILTF","GSGGSYIPTF","GVDGARLML", "MDSNYQLIWGAGTKLIIK"),
+                    cdr3b = c("GGDSLIGNQPQHF","FWTGGWWNEQFF","AFAGTGVYNEQFF","PGTAAYEQYF","GVAGWAYNEQFF","DVDKGSHTETQYF","GTDTQYF","TPSGAPYEQYF","PSGYQETQYF",
+                              "PKARFYEQYF","SDGGEGYNEQFF","EAGDNEQFF","PDFDPRDTQYF","RPGQGWETQYF","ISQVSSSYKEQFF","WAIQETQYF","YYSQETQYF","PSSFQETQYF",
+                              "FGRQETQYF","PWDYQETQYF","SLWGVETQYF","LASQETQYF","QWTEQETQYF","APGLAYNEQFF","ESGKDTEAFF","DQGADTGELFF","YDGEAFF","WQSTDTQYF",
+                              "DWGPPGNEQFF","DRAGGRFSGNTIYF","SSHNEQFF","MTGFTEAFF","KVTSGQHQGTTDTQYF"),
+                    source = c("Meermeier.NatComm.2016",rep("Gherardin.Imm.2016", 8), rep("Koay.NatComm.2019",23), "EXPI"),
+                    reactivity = c("5-OP-RU", rep("6-FP",3),rep("5-OP-RU",5), rep("5-OP-RU",23), "AUTO-MAIT"))
+
+mr1t.cdrs <- rbind(mr1t.cdrs, extra)
+
+```
+
+
+
+
+# V distances
+
+```{r}
+jab.hsap <- read.table(file="include/extdata/alphabeta_db.tsv", header=T, sep="\t")
+jab.hsap <- jab.hsap[which(jab.hsap$organism == "human" & jab.hsap$region == "J"),]
+
+
+
+ab.hsap <- read.table(file="include/extdata/alphabeta_db.tsv", header=T, sep="\t")
+ab.hsap <- ab.hsap[which(ab.hsap$organism == "human"),]
+cdrs <- as.data.frame(str_split(ab.hsap$cdrs, pattern = ";", simplify = T)[,1:3])
+colnames(cdrs) <- c("cdr1","cdr2","cdr2.5")
+ab.hsap <- cbind(ab.hsap, cdrs)
+
+save(ab.hsap, file="./data/IMGT_Vab_Hsap.rda")
+va.hsap <- ab.hsap[which(ab.hsap$chain == "A" & ab.hsap$region == "V"),]
+vb.hsap <- ab.hsap[which(ab.hsap$chain == "B" & ab.hsap$region == "V"),]
+
+va.distmat <- Vdist(cdrs=paste(va.hsap$cdr1, va.hsap$cdr2, va.hsap$cdr2.5, sep=""), Vgene = va.hsap$id, gap_penalty = 4, weight = 1)
+vb.distmat <- Vdist(cdrs=paste(vb.hsap$cdr1, vb.hsap$cdr2, vb.hsap$cdr2.5, sep=""), Vgene = vb.hsap$id, gap_penalty = 4, weight = 1)
+va.distmat[1:5, 1:5]
+```
+
+
+```{r}
+HsVaDist <- as.dist(va.distmat, diag = T)
+HsVbDist <- as.dist(vb.distmat, diag = T)
+
+
+colnames(va.distmat) <- va.hsap$id
+rownames(va.distmat) <- va.hsap$id
+
+save(HsVaDist, file="./data/HsVaDist.rda")
+save(HsVbDist, file="./data/HsVbDist.rda")
+```
+
+
+```{r}
+pheatmap::pheatmap(as.matrix(va.distmat), color=viridis::viridis(100), border_color = NA, cellheight = 2.5, cellwidth = 2.5,
+                   main = "V-alpha distance based on IMGT CDR1, CDR2 & CDR2.5 AA sequences")
+
+pheatmap::pheatmap(as.matrix(va.distmat), color=viridis::viridis(100), border_color = NA, cellheight = 8, cellwidth = 8,
+                   main = "V-alpha distance based on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   filename = "./ignore/Va_gene_distances.pdf", height = 20, width = 20)
+```
+
+
+```{r}
+pheatmap::pheatmap(as.matrix(vb.distmat), color=viridis::viridis(100), border_color = NA, cellheight = 2.5, cellwidth = 2.5,
+                   main = "V-beta distance based on IMGT CDR1, CDR2 & CDR2.5 AA sequences")
+
+pheatmap::pheatmap(as.matrix(vb.distmat), color=viridis::viridis(100), border_color = NA, cellheight = 8, cellwidth = 8,
+                   main = "V-beta distance based on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   filename = "./ignore/Vb_gene_distances.pdf", height = 20, width = 20)
+```
+
+```{r}
+hist(va.distmat, breaks=100)
+hist(vb.distmat, breaks=100)
+```
+
+# Alpha/Beta Permutations
+
+```{r}
+vab.id <- vector(mode="character")
+vab <- vector(mode="character")
+for(a in 1:nrow(va.hsap))
+{
+  for(b in 1:nrow(vb.hsap))
+  {
+    vab.id <- append(vab.id, paste(va.hsap[a,"id"], vb.hsap[b,"id"], sep=" / "))
+    vab <- append(vab, paste(paste(va.hsap[a, c("cdr1","cdr2","cdr2.5")], collapse =""), paste(vb.hsap[b, c("cdr1","cdr2","cdr2.5")], collapse=""), sep=""))
+  }
+}
+
+
+vab.perm <- data.frame(id = vab.id, vab=vab, stringsAsFactors = FALSE)
+
+### remove dupicate vabs (ignoring CDR3 bit), ie focus on unique AA sequences & reducing computation complexity.
+vab.perm <- vab.perm[!duplicated(vab.perm$vab),]
+
+vab.dist <- Vdist(cdrs = vab.perm$vab, Vgene = vab.perm$id, gap_penalty = 4, weight = 1)
+
+vab.dist <- as.dist(vab.dist, diag = T)
+```
+
+
+
+
+```{r}
+vab.dist.clust <- hcluster(vab.dist, nbproc=7)
+saveRDS(vab.dist.clust, file = "ignore/20210103_vab_dist_hclust_JS.RDS")
+```
+
+```{r}
+anno <- data.frame(row.names = vab.perm$id, mait = rep(NA, nrow(vab.perm)), mr1t = rep(NA, nrow(vab.perm)), id = vab.perm$id)
+anno[which(anno$id %in% mr1t.cdrs$tcr.genes),"mr1t"] <- "MR1T"
+anno[which(anno$id %in% mait),"mait"] <- "MAIT"
+```
+
+
+```{r}
+pheatmap::pheatmap(as.matrix(vab.dist), color=viridis::viridis(100), border_color = NA, cellheight = 0.5, cellwidth = 0.5,
+                   main = "Vab permutations distance based on IMGT CDR1, CDR2 & CDR2.5 AA sequences",annotation_col = anno[,c("mait","mr1t")],
+                   cluster_rows = vab.dist.clust, cluster_cols = vab.dist.clust, labels_col=anno$clones,
+                   annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2])) )
+
+pheatmap::pheatmap(as.matrix(vab.dist), color=viridis::viridis(100), border_color = NA, cellheight = 0.3, cellwidth = 0.3,
+                   main = "Vab permutations distance based on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   filename = "./ignore/Vab_gene_distances.png", height = 25, width = 25,annotation_col = anno[,c("mait","mr1t")],
+                   cluster_rows = vab.dist.clust, cluster_cols = vab.dist.clust, labels_col=anno$clones, show_rownames = F,
+                   annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2])) )
+```
+
+# MAIT & MR1T Distances
+
+```{r}
+mr1t.cdrs$vab <- NA
+for(i in 1:nrow(mr1t.cdrs))
+{
+  mr1t.cdrs[i,"vab"] <- vab.perm[which(vab.perm$id == mr1t.cdrs[i,"tcr.genes"]),c("vab"),]
+}
+
+#mr1t.cdrs <- merge(mr1t.cdrs, vab.perm[which(vab.perm$id %in% mr1t.cdrs$tcr.genes),c("id","vab"),], by.x="tcr.genes", by.y="id", all.x=T)
+
+vab.mait <- vab.perm[which(vab.perm$id %in% mait),c("id","vab"),]
+vab.mait$clone <- paste("MAIT",1:nrow(vab.mait), sep=".")
+
+mr1t.mait.cdrs <- merge(mr1t.cdrs, vab.mait, by.x="tcr.genes", by.y="id", all=T)
+
+mr1t.mait.cdrs[is.na(mr1t.mait.cdrs$clone.x),"vab.x"] <- mr1t.mait.cdrs[is.na(mr1t.mait.cdrs$clone.x),"vab.y"]
+mr1t.mait.cdrs[is.na(mr1t.mait.cdrs$clone.x),"clone.x"] <- paste("MAIT",1:11, sep=".")
+
+
+mr1t.mait.cdrs$clone.y <- NULL
+mr1t.mait.cdrs$vab.y <- NULL
+colnames(mr1t.mait.cdrs)[2] <- "clone"
+colnames(mr1t.mait.cdrs)[7] <- "vab"
+
+
+anno <- data.frame(row.names = mr1t.mait.cdrs$clone, mr1t = rep(NA, nrow(mr1t.mait.cdrs)), mait = rep(NA, nrow(mr1t.mait.cdrs)), tcr.gene = mr1t.mait.cdrs$tcr.genes,
+                   reactivity = mr1t.mait.cdrs$reactivity, source = mr1t.mait.cdrs$source, clone=mr1t.mait.cdrs$clone)
+
+anno[grep("MAIT", anno$clone, invert = T),"mr1t"] <- "MR1T"
+anno[grep("MAIT", anno$clone),"clone"] <- ""
+anno[c(paste("MAIT",1:11, sep="."),"DGA4-39"),"mait"] <- "MAIT"
+
+
+```
+
+
+```{r}
+vab.mr1t.dist <- Vdist(cdrs = mr1t.cdrs$vab, Vgene = mr1t.cdrs$clone, gap_penalty = 4, weight = 1)
+vab.mr1t.mait.dist <- Vdist(cdrs = mr1t.mait.cdrs$vab, Vgene = mr1t.mait.cdrs$clone, gap_penalty = 4, weight = 1)
+vab.mr1t.dist <- as.dist(vab.mr1t.dist)
+vab.mr1t.mait.dist <- as.dist(vab.mr1t.mait.dist)
+```
+
+
+```{r}
+pheatmap::pheatmap(as.matrix(vab.mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10,
+                   main = "MR1T Vab distance \nbased on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   annotation_col = anno[attr(vab.mr1t.dist, "Labels"),c("mait","mr1t","source","reactivity")],
+                   labels_row=anno[attr(vab.mr1t.dist, "Labels"),"tcr.gene"], labels_col=anno[attr(vab.mr1t.dist, "Labels"),"clone"],
+                   annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])),
+                   filename = "./ignore/MR1T_Vab_gene_distances.png", height = 15, width = 15,)
+
+pheatmap::pheatmap(as.matrix(vab.mr1t.mait.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10,
+                   main = "MR1T & MAIT Vab distance \nbased on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   annotation_col = anno[,c("mait","mr1t","source","reactivity")],
+                   labels_row=anno[,"tcr.gene"], labels_col=anno[,"clone"],
+                   annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])),
+                   filename = "./ignore/MR1T_MAIT_Vab_gene_distances.png", height = 15, width = 15,)
+```
+
+```{r}
+pheatmap::pheatmap(as.matrix(vab.mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10,
+                   main = "MR1T Vab distance \nbased on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   annotation_col = anno[attr(vab.mr1t.dist, "Labels"),c("mait","mr1t","source","reactivity")],
+                   labels_row=anno[attr(vab.mr1t.dist, "Labels"),"tcr.gene"], labels_col=anno[attr(vab.mr1t.dist, "Labels"),"clone"],
+                   annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])),
+                   filename = "./ignore/MR1T_Vab_gene_distances.pdf", height = 15, width = 15)
+
+pheatmap::pheatmap(as.matrix(vab.mr1t.mait.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10,
+                   main = "MR1T & MAIT Vab distance \nbased on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   annotation_col = anno[,c("mait","mr1t","source","reactivity")],
+                   labels_row=anno[,"tcr.gene"], labels_col=anno[,"clone"],
+                   annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])),
+                   filename = "./ignore/MR1T_MAIT_Vab_gene_distances.pdf", height = 15, width = 15)
+```
+
+
+```{r}
+pheatmap::pheatmap(as.matrix(vab.mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10,
+                   main = "MR1T Vab distance \nbased on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   annotation_col = anno[attr(vab.mr1t.dist, "Labels"),c("mait","mr1t")],
+                   labels_row=anno[,"tcr.gene"], labels_col=anno[,"clone"],
+                   annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])))
+```
+
+```{r}
+x <- pheatmap::pheatmap(as.matrix(vab.mr1t.mait.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10,
+                   main = "MR1T & MAIT Vab distance \nbased on IMGT CDR1, CDR2 & CDR2.5 AA sequences",
+                   annotation_col = anno[,c("mait","mr1t")],
+                   labels_row=anno[,"tcr.gene"], labels_col=anno[,"clone"],
+                   annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])))
+```
+
+
+```{r}
+total.cr <- readRDS(file="/Volumes/EXPI$/EXPI/Data to share/AISHA/20200623_Heatmaps_JS/20200623_total_cr_trans_data.RDS")
+```
+
+
+```{r}
+mait.insert <- matrix(NA, nrow=nrow(total.cr), ncol = 23, dimnames = list(1:nrow(total.cr), 
+                                                                          c(paste("MAIT",1:11, sep="."),"QY1B42","DGA28","DGA4-39","CH9A3","QY1C3","JMA","MCA3D9",
+                                                                            "CHO9A4","JM64-8","LMB1F3","DGB70","MC.7.G5")))
+mait.insert <- as.data.frame(mait.insert)
+total.cr.hm <- pheatmap::pheatmap(total.cr[,1:12], color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10)
+total.cr.anno <- total.cr[,13:14]
+
+total.cr <- cbind(total.cr, mait.insert)
+
+total.cr.anno <- data.frame(row.names = rownames(total.cr.anno), type = total.cr.anno$type)
+
+anno.col <- ggsci::pal_d3("category20c")(length(unique(total.cr.anno$type)))
+names(anno.col) <- as.character(unique(total.cr.anno$type))
+anno.col <- list(type = anno.col)
+
+
+pheatmap::pheatmap(total.cr[total.cr.hm$tree_row$order,x$tree_col$labels[x$tree_col$order]],
+                   color = rev(viridis::viridis(100)), border_color = NA, cellheight = 10, cellwidth = 10,
+                   cluster_rows = F, cluster_cols = F,na_col = "grey", annotation_row = total.cr.anno, annotation_colors = anno.col,
+                   filename = "./ignore/MR1T_MAIT_IFNg_Cancer20200623_ABdata.pdf", height = 10, width = 15)
+
+pheatmap::pheatmap(total.cr[total.cr.hm$tree_row$order,x$tree_col$labels[x$tree_col$order]],
+                   color = rev(viridis::viridis(100)), border_color = NA, cellheight = 10, cellwidth = 10,
+                   cluster_rows = F, cluster_cols = F,na_col = "grey", annotation_row = total.cr.anno, annotation_colors = anno.col,
+                   filename = "./ignore/MR1T_MAIT_IFNg_Cancer20200623_ABdata.png", height = 10, width = 15)
+
+```
+
+
+```{r}
+
+mr1t.fulldist.v <- TCRdist::Vdist(Vgene = mr1t.cdrs$clone, cdrs=mr1t.cdrs$vab, gap_penalty = 4, weight = 1)
+mr1t.cdrsa.dist <- TCRdist::CDRdistmat(cdrs = mr1t.cdrs$cdr3a, clones = mr1t.cdrs$clone, cdr = 3)
+mr1t.cdrsb.dist <- TCRdist::CDRdistmat(cdrs = mr1t.cdrs$cdr3b, clones = mr1t.cdrs$clone, cdr = 3)
+
+mr1t.dist <- mr1t.fulldist.v + mr1t.cdrsa.dist + mr1t.cdrsb.dist
+mr1t.dist <- as.dist(mr1t.dist)
+```
+
+
+```{r}
+alt.names <- data.frame(row.names = mr1t.cdrs$clone, tcr.genes=mr1t.cdrs$tcr.genes)
+pheatmap::pheatmap(as.matrix(mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10, treeheight_row = FALSE,
+                  labels_row=alt.names$tcr.genes, annotation_col = anno[attr(mr1t.dist, "Labels"),c("source","reactivity")],
+                  annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])),
+                  main="MR1T TCRdist (full cdrs included)",
+                  filename = "./ignore/MR1T_TCRdist.pdf", height = 15, width = 15)
+
+pheatmap::pheatmap(as.matrix(mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10, treeheight_row = FALSE,
+                  labels_row=alt.names$tcr.genes, annotation_col = anno[attr(mr1t.dist, "Labels"),c("source","reactivity")],
+                  annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])),
+                  main="MR1T TCRdist (full cdrs included)",
+                  filename = "./ignore/MR1T_TCRdist.png", height = 15, width = 15)
+
+x <- pheatmap::pheatmap(as.matrix(mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10,
+                        treeheight_row = FALSE, treeheight_col = 20,
+                        labels_row = alt.names$tcr.genes,
+                        main="MR1T TCRdist (full cdrs included)", height = 10, width = 10)
+```
+
+```{r}
+pheatmap::pheatmap(total.cr[total.cr.hm$tree_row$order,x$tree_col$labels[x$tree_col$order]], color = rev(viridis::viridis(100)), border_color = NA, cellheight = 10, cellwidth = 10,
+                   cluster_rows = F, cluster_cols = F,na_col = "grey", annotation_row = total.cr.anno, annotation_colors = anno.col,
+                   filename = "./ignore/MR1T_MAIT_IFNg_Cancer20200623_ABdata_MR1Tonly.pdf", height = 10, width = 15)
+
+pheatmap::pheatmap(total.cr[total.cr.hm$tree_row$order,x$tree_col$labels[x$tree_col$order]], color = rev(viridis::viridis(100)), border_color = NA, cellheight = 10, cellwidth = 10,
+                   cluster_rows = F, cluster_cols = F,na_col = "grey", annotation_row = total.cr.anno, annotation_colors = anno.col,
+                   filename = "./ignore/MR1T_MAIT_IFNg_Cancer20200623_ABdata_MR1Tonly.png", height = 10, width = 15)
+```
+
+
+```{r}
+mr1t.fulldist.v <- TCRdist::Vdist(Vgene = mr1t.cdrs[which(mr1t.cdrs$source == "EXPI"),"clone"], cdrs=mr1t.cdrs[which(mr1t.cdrs$source == "EXPI"),"vab"],
+                                  gap_penalty = 4, weight = 1)
+mr1t.cdrsa.dist <- TCRdist::CDRdistmat(cdrs = mr1t.cdrs[which(mr1t.cdrs$source == "EXPI"),"cdr3a"],
+                                       clones = mr1t.cdrs[which(mr1t.cdrs$source == "EXPI"),"clone"],cdr = 3)
+mr1t.cdrsb.dist <- TCRdist::CDRdistmat(cdrs = mr1t.cdrs[which(mr1t.cdrs$source == "EXPI"),"cdr3b"],
+                                       clones = mr1t.cdrs[which(mr1t.cdrs$source == "EXPI"),"clone"], cdr = 3)
+
+mr1t.dist <- mr1t.fulldist.v + mr1t.cdrsa.dist + mr1t.cdrsb.dist
+mr1t.dist <- as.dist(mr1t.dist)
+```
+
+```{r}
+alt.names <- data.frame(row.names = mr1t.cdrs[which(mr1t.cdrs$source == "EXPI"),"clone"], tcr.genes=mr1t.cdrs[which(mr1t.cdrs$source == "EXPI"),"tcr.genes"])
+pheatmap::pheatmap(as.matrix(mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10, treeheight_row = FALSE,
+                  labels_row=alt.names$tcr.genes, annotation_col = anno[attr(mr1t.dist, "Labels"),c("source","reactivity")],
+                  annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])),
+                  main="MR1T TCRdist (full cdrs included EXPI only)",
+                  filename = "./ignore/EXPI_MR1T_TCRdist.pdf", height = 8, width = 8)
+
+pheatmap::pheatmap(as.matrix(mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10, treeheight_row = FALSE,
+                  labels_row=alt.names$tcr.genes, annotation_col = anno[attr(mr1t.dist, "Labels"),c("source","reactivity")],
+                  annotation_colors = list(mait = c(MAIT = ggthemes::colorblind_pal()(2)[1]),
+                                            mr1t = c(MR1T = ggthemes::colorblind_pal()(2)[2]),
+                                            source = c(EXPI = ggthemes::colorblind_pal()(6)[1],
+                                                       Gherardin.Imm.2016 = ggthemes::colorblind_pal()(6)[2],
+                                                       Meermeier.NatComm.2016 = ggthemes::colorblind_pal()(6)[3],
+                                                       Koay.NatComm.2019 = ggthemes::colorblind_pal()(6)[4],
+                                                       Sewell.NI.2020 = ggthemes::colorblind_pal()(6)[5]),
+                                            reactivity = c('6-FP' = ggthemes::colorblind_pal()(3)[1],
+                                                           '5-OP-RU' = ggthemes::colorblind_pal()(3)[2])),
+                  main="MR1T TCRdist (full cdrs included EXPI only)",
+                  filename = "./ignore/EXPI_MR1T_TCRdist.png", height = 8, width = 8)
+
+x <- pheatmap::pheatmap(as.matrix(mr1t.dist), color=viridis::viridis(100), border_color = NA, cellheight = 10, cellwidth = 10,
+                        treeheight_row = FALSE, treeheight_col = 20,
+                        labels_row = alt.names$tcr.genes,
+                        main="MR1T TCRdist (full cdrs included EXPI only)", height = 10, width = 10)
+```
+
+
+
+
+## Atchley Embedding
+
+
+
+
+
