@@ -32,10 +32,59 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// seq_dist_with_gappos
+std::vector<int> seq_dist_with_gappos(std::string cdrx, std::string cdry, int gappos, bool trim);
+RcppExport SEXP _TCRdist_seq_dist_with_gappos(SEXP cdrxSEXP, SEXP cdrySEXP, SEXP gapposSEXP, SEXP trimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type cdrx(cdrxSEXP);
+    Rcpp::traits::input_parameter< std::string >::type cdry(cdrySEXP);
+    Rcpp::traits::input_parameter< int >::type gappos(gapposSEXP);
+    Rcpp::traits::input_parameter< bool >::type trim(trimSEXP);
+    rcpp_result_gen = Rcpp::wrap(seq_dist_with_gappos(cdrx, cdry, gappos, trim));
+    return rcpp_result_gen;
+END_RCPP
+}
+// weighted_cdr3_dist
+int weighted_cdr3_dist(std::string cdrx, std::string cdry, bool align, bool trim, int cdr3_weight, int gap_penalty);
+RcppExport SEXP _TCRdist_weighted_cdr3_dist(SEXP cdrxSEXP, SEXP cdrySEXP, SEXP alignSEXP, SEXP trimSEXP, SEXP cdr3_weightSEXP, SEXP gap_penaltySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type cdrx(cdrxSEXP);
+    Rcpp::traits::input_parameter< std::string >::type cdry(cdrySEXP);
+    Rcpp::traits::input_parameter< bool >::type align(alignSEXP);
+    Rcpp::traits::input_parameter< bool >::type trim(trimSEXP);
+    Rcpp::traits::input_parameter< int >::type cdr3_weight(cdr3_weightSEXP);
+    Rcpp::traits::input_parameter< int >::type gap_penalty(gap_penaltySEXP);
+    rcpp_result_gen = Rcpp::wrap(weighted_cdr3_dist(cdrx, cdry, align, trim, cdr3_weight, gap_penalty));
+    return rcpp_result_gen;
+END_RCPP
+}
+// CDR3dist
+IntegerMatrix CDR3dist(std::vector<std::string> cdrs, Rcpp::StringVector clones, bool align, bool trim, int cdr3_weight, int gap_penalty);
+RcppExport SEXP _TCRdist_CDR3dist(SEXP cdrsSEXP, SEXP clonesSEXP, SEXP alignSEXP, SEXP trimSEXP, SEXP cdr3_weightSEXP, SEXP gap_penaltySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type cdrs(cdrsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type clones(clonesSEXP);
+    Rcpp::traits::input_parameter< bool >::type align(alignSEXP);
+    Rcpp::traits::input_parameter< bool >::type trim(trimSEXP);
+    Rcpp::traits::input_parameter< int >::type cdr3_weight(cdr3_weightSEXP);
+    Rcpp::traits::input_parameter< int >::type gap_penalty(gap_penaltySEXP);
+    rcpp_result_gen = Rcpp::wrap(CDR3dist(cdrs, clones, align, trim, cdr3_weight, gap_penalty));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_TCRdist_CDRdistmat", (DL_FUNC) &_TCRdist_CDRdistmat, 3},
     {"_TCRdist_Vdist", (DL_FUNC) &_TCRdist_Vdist, 4},
+    {"_TCRdist_seq_dist_with_gappos", (DL_FUNC) &_TCRdist_seq_dist_with_gappos, 4},
+    {"_TCRdist_weighted_cdr3_dist", (DL_FUNC) &_TCRdist_weighted_cdr3_dist, 6},
+    {"_TCRdist_CDR3dist", (DL_FUNC) &_TCRdist_CDR3dist, 6},
     {NULL, NULL, 0}
 };
 

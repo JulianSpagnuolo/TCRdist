@@ -8,13 +8,13 @@
 An object of class \code{"data.frame"}.
 }
 \usage{
-data(ab.hsap)
+data(IMGT_Vab_Hsap)
 }
 \description{
 Homo sapiens V-alpha and V-beta sequences from IMGT
 }
 \examples{
-data(ab.hsap)
+data(IMGT_Vab_Hsap)
 \donttest{
 
 }

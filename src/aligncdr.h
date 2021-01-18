@@ -76,7 +76,7 @@ int AAdist(char AAx, char AAy, int gap_penalty)
   {
     dist = 0;
   }
-  else if(aax == '-' | aay == '-')
+  else if(AAx == '-' | AAy == '-')
   {
     dist = gap_penalty;
   }

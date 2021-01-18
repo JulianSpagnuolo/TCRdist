@@ -23,3 +23,36 @@ Vdist <- function(cdrs, Vgene, gap_penalty, weight) {
     .Call(`_TCRdist_Vdist`, cdrs, Vgene, gap_penalty, weight)
 }
 
+#' @title seq_dist_with_gappos
+#' @name seq_dist_with_gappos
+#' @author Julian Spagnuolo
+#' @description 
+#'
+#' @param 
+#' @export
+seq_dist_with_gappos <- function(cdrx, cdry, gappos, trim) {
+    .Call(`_TCRdist_seq_dist_with_gappos`, cdrx, cdry, gappos, trim)
+}
+
+#' @title weighted_cdr3_dist
+#' @name weighted_cdr3_dist
+#' @author Julian Spagnuolo
+#' @description 
+#'
+#' @param 
+#' @export
+weighted_cdr3_dist <- function(cdrx, cdry, align, trim, cdr3_weight, gap_penalty) {
+    .Call(`_TCRdist_weighted_cdr3_dist`, cdrx, cdry, align, trim, cdr3_weight, gap_penalty)
+}
+
+#' @title CDR3dist
+#' @name CDR3dist
+#' @author Julian Spagnuolo
+#' @description 
+#'
+#' @param 
+#' @export
+CDR3dist <- function(cdrs, clones, align, trim, cdr3_weight, gap_penalty) {
+    .Call(`_TCRdist_CDR3dist`, cdrs, clones, align, trim, cdr3_weight, gap_penalty)
+}
+
