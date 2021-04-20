@@ -109,7 +109,7 @@ extra <- data.frame(clone = c("D462-E4", "MAV3", "MAV12", "MAV21", "MAV8", "MAV1
                                   "TRAV19*01 / TRBV4-1*01",
                                   "TRAV20*01 / TRBV3-1*01", ### ambiguous
                                   "TRAV36/DV7*01 / TRBV29-1*01", # TRAV36/DV7*03
-                                  "TRAV1-2*01 / TRBV20-1*01"  ## AUTO-REACTIVE MAIT EXPI), 
+                                  "TRAV1-2*01 / TRBV20-1*01"),  ## AUTO-REACTIVE MAIT EXPI), 
                     cdr3a = c("RDAGNMLTF", "AGSQGNLIF", "RGWGKLQF","PLTHSGNQFYF","PFNQFYF","FPFNKFYF","AEDYKLSF","LYSGAGSYQLTF","AYNSDKLIF",
                               "SRGSSNTGKLIF","DRGGSNYKLTF","DHEAAGNKLTF","FASGYSSASKIIF","KLGGGGNKLTF","VSNAGKSTF","YNTDKLIF","YNTDKLIF","AYNTDKLIF","TYNTDKLIF",
                               "VPYNTDKLIF","YNTDKLIF","PYNTGKLIF","GYNTGKLIF","GGLTSNYQLIW","RVNNAGNMLTF","VEDYKLSF","GASGYSTLTF","YSGYALNF","EVSAGGTSYGKLTF",

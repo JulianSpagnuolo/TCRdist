@@ -2,5 +2,6 @@
 
 export(CDRdistmat)
 export(Vdist)
+export(trimmer)
 importFrom(Rcpp,sourceCpp)
 useDynLib(TCRdist, .registration = TRUE)

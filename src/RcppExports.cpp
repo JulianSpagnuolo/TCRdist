@@ -32,10 +32,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// trimmer
+std::vector<std::string> trimmer(std::string cdr3, std::string vpart, std::string jpart);
+RcppExport SEXP _TCRdist_trimmer(SEXP cdr3SEXP, SEXP vpartSEXP, SEXP jpartSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type cdr3(cdr3SEXP);
+    Rcpp::traits::input_parameter< std::string >::type vpart(vpartSEXP);
+    Rcpp::traits::input_parameter< std::string >::type jpart(jpartSEXP);
+    rcpp_result_gen = Rcpp::wrap(trimmer(cdr3, vpart, jpart));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_TCRdist_Vdist", (DL_FUNC) &_TCRdist_Vdist, 4},
     {"_TCRdist_CDRdistmat", (DL_FUNC) &_TCRdist_CDRdistmat, 3},
+    {"_TCRdist_trimmer", (DL_FUNC) &_TCRdist_trimmer, 3},
     {NULL, NULL, 0}
 };
 

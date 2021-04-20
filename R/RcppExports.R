@@ -23,3 +23,14 @@ CDRdistmat <- function(cdrs, clones, cdr) {
     .Call(`_TCRdist_CDRdistmat`, cdrs, clones, cdr)
 }
 
+#' @title trimmer
+#' @name trimmer
+#' @author Julian Spagnuolo
+#' @description trims V and J sequences from CDR3 amino acid sequences based on the IMGT reference.
+#'
+#' @param 
+#' @export
+trimmer <- function(cdr3, vpart, jpart) {
+    .Call(`_TCRdist_trimmer`, cdr3, vpart, jpart)
+}
+
